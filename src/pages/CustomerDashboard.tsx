@@ -106,7 +106,7 @@ const CustomerDashboard = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-4">Welcome to AddWise Tech Innovation</h1>
+          <h1 className="text-4xl font-bold mb-4">Welcome to NighaTech Global</h1>
           <p className="text-xl mb-6">Transforming Industries with Cutting-Edge Technology Solutions</p>
           <p className="text-lg opacity-90">
             We specialize in IoT, AI, Web Technologies, Mobile Applications, Industry 4.0, and Secure Server Solutions
@@ -200,12 +200,12 @@ const CustomerDashboard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-6 h-6" />
-            About AddWise Tech Innovation
+            About NighaTech Global
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-lg">
-            At AddWise Tech Innovation, we are pioneers in delivering cutting-edge technology solutions that transform industries and drive digital transformation.
+            At NighaTech Global, we are pioneers in delivering cutting-edge technology solutions that transform industries and drive digital transformation.
           </p>
           <p>
             Our mission is to empower businesses with innovative IoT, AI, and digital solutions that enhance efficiency, productivity, and competitiveness in the modern marketplace.
@@ -450,7 +450,7 @@ const CustomerDashboard = () => {
         <SidebarInset className="flex-1">
           <div className="flex items-center gap-2 p-4 border-b">
             <SidebarTrigger />
-            <h1 className="text-xl font-semibold">AddWise Tech Innovation</h1>
+            <h1 className="text-xl font-semibold">NighaTech Global</h1>
           </div>
           <div className="p-6 h-full overflow-auto">
             {renderContent()}

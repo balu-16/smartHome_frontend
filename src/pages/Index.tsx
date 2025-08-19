@@ -40,7 +40,7 @@ const Index = () => {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">AddWise Tech</h1>
+                <h1 className="text-xl font-bold text-gray-900">NighaTech Global</h1>
                 <p className="text-sm text-gray-600">Free Authentication Platform</p>
               </div>
             </div>
@@ -60,11 +60,11 @@ const Index = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Role-Based 
-            <span className="block text-blue-600">Authentication System</span>
+            Smart Home
+            {/* <span className="block text-blue-600">Authentication System</span> */}
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Secure and scalable user management with device control, 
+            Secure and scalable user management with device control,
             QR code generation, and comprehensive admin controls.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -159,7 +159,7 @@ const Index = () => {
                 Ready to Secure Your Organization?
               </h2>
               <p className="text-blue-100 mb-8 text-lg">
-                Join thousands of developers using AddWise Tech for their authentication needs.
+                Join thousands of developers using NighaTech Global for their authentication needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
@@ -186,7 +186,7 @@ const Index = () => {
               <Shield className="w-4 h-4 text-white" />
             </div>
             <p className="text-gray-600">
-              © 2024 AddWise Tech. Authentication platform.
+              © 2024 NighaTech Global. Authentication platform.
             </p>
           </div>
         </div>

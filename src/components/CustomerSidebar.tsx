@@ -43,7 +43,7 @@ export function CustomerSidebar({ activeSection, onSectionChange }: CustomerSide
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-lg">AddWise Tech</h2>
+            <h2 className="font-bold text-lg">NighaTech Global</h2>
             <p className="text-sm text-gray-600">Innovation</p>
           </div>
         </div>
