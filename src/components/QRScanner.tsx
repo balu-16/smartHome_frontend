@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,8 @@ import DeviceNameModal from './DeviceNameModal';
 
 const QRScanner = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [deviceCode, setDeviceCode] = useState<string>('');
   const [isAllocating, setIsAllocating] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -588,10 +591,18 @@ const QRScanner = () => {
         onAllocateDevice={handleDeviceAllocation}
         onCancel={handleModalCancel}
         onSuccess={() => {
-          // Refresh the page to update device lists
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
+          // Reset scanner state after successful allocation
+          setDeviceCode('');
+          setIsCameraOn(false);
+          setIsScanning(false);
+          
+          // If user is on standalone add-device route, navigate back to dashboard
+          if (location.pathname === '/customer/add-device') {
+            setTimeout(() => {
+              navigate('/customer/dashboard');
+            }, 1500); // Give time for success toast to be seen
+          }
+          // If user is in dashboard sidebar, no navigation needed
         }}
       />
     </div>
