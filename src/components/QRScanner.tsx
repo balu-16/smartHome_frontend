@@ -208,23 +208,24 @@ const QRScanner = () => {
         }
       }
 
-      // If electronic object is provided and room is selected, automatically create a switch
+      // If electronic object is provided and room is selected, update the device with switch information
       if (electronicObject && roomId) {
         try {
           const { error: switchError } = await supabase
-            .from('switches')
-            .insert({
+            .from('devices')
+            .update({
               room_id: roomId,
               electronic_object: electronicObject,
-              is_active: false,
-            });
+              switch_is_active: false,
+            })
+            .eq('device_code', deviceCode);
 
           if (switchError) {
-            console.error('Error creating switch:', switchError);
-            // Don't fail the device allocation if switch creation fails
+            console.error('Error updating device with switch info:', switchError);
+            // Don't fail the device allocation if switch update fails
             toast({
               title: "Warning",
-              description: "Device allocated successfully, but failed to create switch. You can add it manually later.",
+              description: "Device allocated successfully, but failed to update switch information. You can add it manually later.",
               variant: "destructive",
             });
           }

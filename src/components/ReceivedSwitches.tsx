@@ -12,14 +12,14 @@ import ConfirmationDialog from './ConfirmationDialog';
 
 interface ReceivedSwitch {
   id: number;
-  switch_id: number;
+  device_id: number;
   shared_with_user_id: number;
   shared_at: string;
-  switch: {
+  device: {
     id: number;
     electronic_object: string;
-    is_active: boolean | null;
-    created_at: string | null;
+    switch_is_active: boolean | null;
+    switch_created_at: string | null;
     room: {
       id: number;
       room_type: string | null;
@@ -68,19 +68,19 @@ const ReceivedSwitches = () => {
 
     setIsLoading(true);
     try {
-      // Fetch switches shared with the current user with complete hierarchy info
+      // Fetch devices shared with the current user with complete hierarchy info
       const { data: receivedSwitches, error: receivedError } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .select(`
           id,
-          switch_id,
+          device_id,
           shared_with_user_id,
           shared_at,
-          switches!switch_shared_with_switch_id_fkey (
+          devices!device_shared_with_device_id_fkey (
             id,
             electronic_object,
-            is_active,
-            created_at,
+            switch_is_active,
+            switch_created_at,
             rooms!inner (
               id,
               room_type,
@@ -97,7 +97,8 @@ const ReceivedSwitches = () => {
             )
           )
         `)
-        .eq('shared_with_user_id', Number(user.id));
+        .eq('shared_with_user_id', Number(user.id))
+        .not('devices.electronic_object', 'is', null);
 
       if (receivedError) {
         console.error('Error fetching received switches:', receivedError);
@@ -112,23 +113,23 @@ const ReceivedSwitches = () => {
       // Transform the data to match our interface
       const transformedData = (receivedSwitches || []).map((item: any) => ({
         id: item.id,
-        switch_id: item.switch_id,
+        device_id: item.device_id,
         shared_with_user_id: item.shared_with_user_id,
         shared_at: item.shared_at,
-        switch: {
-          id: item.switches?.id || 0,
-          electronic_object: item.switches?.electronic_object || 'Unknown',
-          is_active: item.switches?.is_active || false,
-          created_at: item.switches?.created_at || '',
+        device: {
+          id: item.devices?.id || 0,
+          electronic_object: item.devices?.electronic_object || 'Unknown',
+          switch_is_active: item.devices?.switch_is_active || false,
+          switch_created_at: item.devices?.switch_created_at || '',
           room: {
-            id: item.switches?.rooms?.id || 0,
-            room_type: item.switches?.rooms?.room_type || 'Unknown Type',
+            id: item.devices?.rooms?.id || 0,
+            room_type: item.devices?.rooms?.room_type || 'Unknown Type',
             house: {
-              id: item.switches?.rooms?.houses?.id || 0,
-              house_name: item.switches?.rooms?.houses?.house_name || 'Unknown House',
+              id: item.devices?.rooms?.houses?.id || 0,
+              house_name: item.devices?.rooms?.houses?.house_name || 'Unknown House',
               user: {
-                full_name: item.switches?.rooms?.houses?.signup_users?.full_name || 'Unknown User',
-                phone_number: item.switches?.rooms?.houses?.signup_users?.phone_number || 'N/A',
+                full_name: item.devices?.rooms?.houses?.signup_users?.full_name || 'Unknown User',
+                phone_number: item.devices?.rooms?.houses?.signup_users?.phone_number || 'N/A',
               },
             },
           },
@@ -148,39 +149,39 @@ const ReceivedSwitches = () => {
     }
   };
 
-  const handleToggleSwitch = async (switchId: number, newState: boolean) => {
+  const handleToggleSwitch = async (deviceId: number, newState: boolean) => {
     try {
       const { error } = await supabase
-        .from('switches')
-        .update({ is_active: newState })
-        .eq('id', switchId);
+        .from('devices')
+        .update({ switch_is_active: newState })
+        .eq('id', deviceId);
 
       if (error) {
-        console.error('Error updating switch:', error);
+        console.error('Error updating device:', error);
         toast({
           title: "Error",
-          description: "Failed to update switch state.",
+          description: "Failed to update device state.",
           variant: "destructive",
         });
       } else {
         // Update local state
         setReceivedSwitches(prev => 
           prev.map(item => 
-            item.switch.id === switchId 
-              ? { ...item, switch: { ...item.switch, is_active: newState } }
+            item.device.id === deviceId 
+              ? { ...item, device: { ...item.device, switch_is_active: newState } }
               : item
           )
         );
         toast({
           title: "Success",
-          description: `Switch ${newState ? 'turned on' : 'turned off'} successfully.`,
+          description: `Device ${newState ? 'turned on' : 'turned off'} successfully.`,
         });
       }
     } catch (error) {
-      console.error('Error updating switch:', error);
+      console.error('Error updating device:', error);
       toast({
         title: "Error",
-        description: "Failed to update switch state.",
+        description: "Failed to update device state.",
         variant: "destructive",
       });
     }
@@ -191,29 +192,29 @@ const ReceivedSwitches = () => {
 
     try {
       const { error } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .delete()
         .eq('id', removeDialog.shareId);
 
       if (error) {
-        console.error('Error removing switch access:', error);
+        console.error('Error removing device access:', error);
         toast({
           title: "Error",
-          description: "Failed to remove switch access.",
+          description: "Failed to remove device access.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Success",
-          description: "Switch access removed successfully.",
+          description: "Device access removed successfully.",
         });
         fetchReceivedSwitches();
       }
     } catch (error) {
-      console.error('Error removing switch access:', error);
+      console.error('Error removing device access:', error);
       toast({
         title: "Error",
-        description: "Failed to remove switch access.",
+        description: "Failed to remove device access.",
         variant: "destructive",
       });
     } finally {
@@ -232,9 +233,9 @@ const ReceivedSwitches = () => {
   };
 
   const totalSwitches = receivedSwitches.length;
-  const activeSwitches = receivedSwitches.filter(item => item.switch.is_active).length;
-  const uniqueOwners = new Set(receivedSwitches.map(item => item.switch.room.house.user.full_name)).size;
-  const uniqueHouses = new Set(receivedSwitches.map(item => item.switch.room.house.house_name)).size;
+  const activeSwitches = receivedSwitches.filter(item => item.device.switch_is_active).length;
+  const uniqueOwners = new Set(receivedSwitches.map(item => item.device.room.house.user.full_name)).size;
+  const uniqueHouses = new Set(receivedSwitches.map(item => item.device.room.house.house_name)).size;
 
   return (
     <div className="space-y-6">
@@ -335,20 +336,20 @@ const ReceivedSwitches = () => {
                     <TableRow key={item.id} className="bg-blue-50">
                       <TableCell className="font-medium">
                         <span className="text-blue-700">
-                          {item.switch.room.house.user.full_name}
+                          {item.device.room.house.user.full_name}
                         </span>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {item.switch.room.house.house_name}
+                        {item.device.room.house.house_name}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {item.switch.room.room_type}
+                        {item.device.room.room_type}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {item.switch.electronic_object}
+                        {item.device.electronic_object}
                       </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {item.switch.room.house.user.phone_number}
+                        {item.device.room.house.user.phone_number}
                       </TableCell>
                       <TableCell className="text-sm text-gray-600">
                         {formatDate(item.shared_at)}
@@ -359,7 +360,7 @@ const ReceivedSwitches = () => {
                           size="sm"
                           onClick={() => setControlDialog({
                             open: true,
-                            switch: item.switch
+                            switch: item.device
                           })}
                           className="flex items-center gap-2"
                         >
@@ -374,8 +375,8 @@ const ReceivedSwitches = () => {
                           onClick={() => setRemoveDialog({
                             open: true,
                             shareId: item.id,
-                            switchInfo: `${item.switch.room.house.house_name} > ${item.switch.room.room_type} > ${item.switch.electronic_object}`,
-                            ownerName: item.switch.room.house.user.full_name
+                            switchInfo: `${item.device.room.house.house_name} > ${item.device.room.room_type} > ${item.device.electronic_object}`,
+                            ownerName: item.device.room.house.user.full_name
                           })}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
@@ -405,15 +406,15 @@ const ReceivedSwitches = () => {
             <div className="mt-4">
               <DeviceControl
                 deviceType={controlDialog.switch.electronic_object}
-                isActive={controlDialog.switch.is_active || false}
+                isActive={controlDialog.switch.switch_is_active || false}
                 onToggle={() => {
-                  handleToggleSwitch(controlDialog.switch.id, !controlDialog.switch.is_active);
+                  handleToggleSwitch(controlDialog.switch.id, !controlDialog.switch.switch_is_active);
                   // Update the switch state in the dialog
                   setControlDialog(prev => ({
                     ...prev,
                     switch: {
                       ...prev.switch,
-                      is_active: !prev.switch.is_active
+                      switch_is_active: !prev.switch.switch_is_active
                     }
                   }));
                 }}

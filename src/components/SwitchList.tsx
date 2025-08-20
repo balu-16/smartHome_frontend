@@ -13,8 +13,8 @@ import { Tables } from '../integrations/supabase/types';
 import DeviceControl from './DeviceControl';
 import { useAuth } from '../contexts/AuthContext';
 
-type SwitchType = Tables<'switches'> & {
-  is_active?: boolean;
+type SwitchType = Tables<'devices'> & {
+  switch_is_active?: boolean;
 };
 type Room = Tables<'rooms'>;
 
@@ -70,9 +70,10 @@ export const SwitchList: React.FC<SwitchListProps> = ({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('switches')
+        .from('devices')
         .select('*')
         .eq('room_id', room.id)
+        .not('electronic_object', 'is', null)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -91,8 +92,8 @@ export const SwitchList: React.FC<SwitchListProps> = ({
 
   const handleToggleSwitch = async (switchId: number, newState: boolean) => {
     const { error } = await supabase
-      .from('switches')
-      .update({ is_active: newState })
+      .from('devices')
+      .update({ switch_is_active: newState })
       .eq('id', switchId);
 
     if (error) {
@@ -104,7 +105,7 @@ export const SwitchList: React.FC<SwitchListProps> = ({
       });
     } else {
       setSwitches(switches.map(s => 
-        s.id === switchId ? { ...s, is_active: newState } : s
+        s.id === switchId ? { ...s, switch_is_active: newState } : s
       ));
     }
   };
@@ -123,7 +124,7 @@ export const SwitchList: React.FC<SwitchListProps> = ({
 
     try {
       const { data, error } = await supabase
-        .from('switches')
+        .from('devices')
         .update({
           electronic_object: selectedElectronicObject,
         })
@@ -158,7 +159,7 @@ export const SwitchList: React.FC<SwitchListProps> = ({
 
     try {
       const { error } = await supabase
-        .from('switches')
+        .from('devices')
         .delete()
         .eq('id', switchId);
 
@@ -235,9 +236,9 @@ export const SwitchList: React.FC<SwitchListProps> = ({
 
       // Check if switch is already shared with this user
       const { data: existingShare, error: checkError } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .select('id')
-        .eq('switch_id', sharingSwitch.id)
+        .eq('device_id', sharingSwitch.id)
         .eq('shared_with_user_id', targetUser.id)
         .single();
 
@@ -252,9 +253,9 @@ export const SwitchList: React.FC<SwitchListProps> = ({
 
       // Create the share record
       const { error: shareError } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .insert({
-          switch_id: sharingSwitch.id,
+          device_id: sharingSwitch.id,
           shared_with_user_id: targetUser.id,
         });
 
@@ -378,8 +379,8 @@ export const SwitchList: React.FC<SwitchListProps> = ({
                 <div className="space-y-3">
                   <DeviceControl 
                     deviceType={switchItem.electronic_object}
-                    isActive={switchItem.is_active || false}
-                    onToggle={() => handleToggleSwitch(switchItem.id, !switchItem.is_active)}
+                    isActive={switchItem.switch_is_active || false}
+                    onToggle={() => handleToggleSwitch(switchItem.id, !switchItem.switch_is_active)}
                     onSettingChange={(setting, value) => {
                       console.log(`${switchItem.electronic_object} ${setting} changed to:`, value);
                     }}

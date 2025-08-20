@@ -22,6 +22,10 @@ export type Database = {
           id: number
           is_active: boolean | null
           qr_code: string
+          room_id: number | null
+          electronic_object: string | null
+          switch_is_active: boolean | null
+          switch_created_at: string | null
         }
         Insert: {
           allocated_at?: string | null
@@ -35,6 +39,10 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           qr_code: string
+          room_id?: number | null
+          electronic_object?: string | null
+          switch_is_active?: boolean | null
+          switch_created_at?: string | null
         }
         Update: {
           allocated_at?: string | null
@@ -48,6 +56,10 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           qr_code?: string
+          room_id?: number | null
+          electronic_object?: string | null
+          switch_is_active?: boolean | null
+          switch_created_at?: string | null
         }
         Relationships: [
           {
@@ -55,6 +67,13 @@ export type Database = {
             columns: ["allocated_to_customer_id"]
             isOneToOne: false
             referencedRelation: "signup_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devices_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -343,42 +362,7 @@ export type Database = {
         ]
       }
 
-      switch_shared_with: {
-        Row: {
-          id: number
-          switch_id: number
-          shared_with_user_id: number
-          shared_at: string
-        }
-        Insert: {
-          id?: number
-          switch_id: number
-          shared_with_user_id: number
-          shared_at?: string
-        }
-        Update: {
-          id?: number
-          switch_id?: number
-          shared_with_user_id?: number
-          shared_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "switch_shared_with_switch_id_fkey"
-            columns: ["switch_id"]
-            isOneToOne: false
-            referencedRelation: "switches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_switch_shared_with_user"
-            columns: ["shared_with_user_id"]
-            isOneToOne: false
-            referencedRelation: "signup_users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+
 
     }
     Views: {

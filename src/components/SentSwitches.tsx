@@ -11,14 +11,14 @@ import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 interface SharedSwitch {
   id: number;
-  switch_id: number;
+  device_id: number;
   shared_with_user_id: number;
   shared_at: string;
-  switch: {
+  device: {
     id: number;
     electronic_object: string;
-    is_active: boolean | null;
-    created_at: string | null;
+    switch_is_active: boolean | null;
+    switch_created_at: string | null;
     room: {
       id: number;
       room_type: string | null;
@@ -59,19 +59,19 @@ const SentSwitches = () => {
 
     setIsLoading(true);
     try {
-      // Fetch switches shared by the current user with complete hierarchy info
+      // Fetch devices shared by the current user with complete hierarchy info
       const { data: sentSwitches, error: sentError } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .select(`
           id,
-          switch_id,
+          device_id,
           shared_with_user_id,
           shared_at,
-          switches!switch_shared_with_switch_id_fkey (
+          devices!device_shared_with_device_id_fkey (
             id,
             electronic_object,
-            is_active,
-            created_at,
+            switch_is_active,
+            switch_created_at,
             rooms!inner (
               id,
               room_type,
@@ -83,8 +83,9 @@ const SentSwitches = () => {
             )
           )
         `)
-        .eq('switches.rooms.houses.user_id', Number(user.id))
-        .neq('shared_with_user_id', Number(user.id));
+        .eq('devices.rooms.houses.user_id', Number(user.id))
+        .neq('shared_with_user_id', Number(user.id))
+        .not('devices.electronic_object', 'is', null);
 
       if (sentError) {
         console.error('Error fetching sent switches:', sentError);
@@ -115,20 +116,20 @@ const SentSwitches = () => {
       // Transform the data to match our interface
       const transformedData = (sentSwitches || []).map((item: any) => ({
         id: item.id,
-        switch_id: item.switch_id,
+        device_id: item.device_id,
         shared_with_user_id: item.shared_with_user_id,
         shared_at: item.shared_at,
-        switch: {
-          id: item.switches?.id || 0,
-          electronic_object: item.switches?.electronic_object || 'Unknown',
-          is_active: item.switches?.is_active || false,
-          created_at: item.switches?.created_at || '',
+        device: {
+          id: item.devices?.id || 0,
+          electronic_object: item.devices?.electronic_object || 'Unknown',
+          switch_is_active: item.devices?.switch_is_active || false,
+          switch_created_at: item.devices?.switch_created_at || '',
           room: {
-            id: item.switches?.rooms?.id || 0,
-            room_type: item.switches?.rooms?.room_type || 'Unknown Type',
+            id: item.devices?.rooms?.id || 0,
+            room_type: item.devices?.rooms?.room_type || 'Unknown Type',
             house: {
-              id: item.switches?.rooms?.houses?.id || 0,
-              house_name: item.switches?.rooms?.houses?.house_name || 'Unknown House',
+              id: item.devices?.rooms?.houses?.id || 0,
+              house_name: item.devices?.rooms?.houses?.house_name || 'Unknown House',
             },
           },
         },
@@ -153,29 +154,29 @@ const SentSwitches = () => {
 
     try {
       const { error } = await supabase
-        .from('switch_shared_with')
+        .from('device_shared_with')
         .delete()
         .eq('id', revokeDialog.shareId);
 
       if (error) {
-        console.error('Error revoking switch share:', error);
+        console.error('Error revoking device share:', error);
         toast({
           title: "Error",
-          description: "Failed to revoke switch access.",
+          description: "Failed to revoke device access.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Success",
-          description: "Switch access revoked successfully.",
+          description: "Device access revoked successfully.",
         });
         fetchSentSwitches();
       }
     } catch (error) {
-      console.error('Error revoking switch share:', error);
+      console.error('Error revoking device share:', error);
       toast({
         title: "Error",
-        description: "Failed to revoke switch access.",
+        description: "Failed to revoke device access.",
         variant: "destructive",
       });
     } finally {
@@ -193,20 +194,20 @@ const SentSwitches = () => {
     });
   };
 
-  // Group switches by switch_id to show how many users each switch is shared with
-  const switchGroups = sharedSwitches.reduce((acc, share) => {
-    const switchId = share.switch_id;
-    if (!acc[switchId]) {
-      acc[switchId] = {
-        switch: share.switch,
+  // Group devices by device_id to show how many users each device is shared with
+  const deviceGroups = sharedSwitches.reduce((acc, share) => {
+    const deviceId = share.device_id;
+    if (!acc[deviceId]) {
+      acc[deviceId] = {
+        device: share.device,
         shares: []
       };
     }
-    acc[switchId].shares.push(share);
+    acc[deviceId].shares.push(share);
     return acc;
-  }, {} as Record<number, { switch: SharedSwitch['switch'], shares: SharedSwitch[] }>);
+  }, {} as Record<number, { device: SharedSwitch['device'], shares: SharedSwitch[] }>);
 
-  const uniqueSwitches = Object.keys(switchGroups).length;
+  const uniqueSwitches = Object.keys(deviceGroups).length;
   const totalShares = sharedSwitches.length;
   const uniqueUsers = new Set(sharedSwitches.map(share => share.shared_with_user_id)).size;
 
@@ -267,7 +268,7 @@ const SentSwitches = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {Object.values(switchGroups).filter(group => group.switch.is_active).length}
+              {Object.values(deviceGroups).filter(group => group.device.switch_is_active).length}
             </div>
           </CardContent>
         </Card>
@@ -308,13 +309,13 @@ const SentSwitches = () => {
                 {sharedSwitches.map((share) => (
                   <TableRow key={share.id} className="bg-green-50">
                     <TableCell className="font-medium">
-                      {share.switch.room.house.house_name}
+                      {share.device.room.house.house_name}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {share.switch.room.room_type}
+                      {share.device.room.room_type}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {share.switch.electronic_object}
+                      {share.device.electronic_object}
                     </TableCell>
                     <TableCell>
                       <span className="text-green-700 font-medium">
@@ -329,11 +330,11 @@ const SentSwitches = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        share.switch.is_active 
+                        share.device.switch_is_active 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {share.switch.is_active ? 'Active' : 'Inactive'}
+                        {share.device.switch_is_active ? 'Active' : 'Inactive'}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -343,7 +344,7 @@ const SentSwitches = () => {
                         onClick={() => setRevokeDialog({
                           open: true,
                           shareId: share.id,
-                          switchInfo: `${share.switch.room.house.house_name} > ${share.switch.room.room_type} > ${share.switch.electronic_object}`,
+                          switchInfo: `${share.device.room.house.house_name} > ${share.device.room.room_type} > ${share.device.electronic_object}`,
                           userName: share.shared_with_user.full_name
                         })}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
